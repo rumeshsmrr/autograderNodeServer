@@ -3,7 +3,7 @@ name: Deploy Node.js Microservice to AWS ECS via Docker Hub
 on:
   push:
     branches:
-      - main # Runs when changes are pushed to main branch
+      - main # Runs when changes are pushed to the main branch
 
 jobs:
   deploy:
@@ -43,33 +43,36 @@ jobs:
         run: |
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set region eu-north-1  # Change this to your AWS region
+          aws configure set region eu-north-1  # Change region if needed
 
       # Step 6: Verify AWS Credentials
       - name: Verify AWS CLI Credentials
         run: aws sts get-caller-identity
 
-      # Step 7: Install jq for JSON Processing
-      - name: Install jq
-        run: sudo apt-get install jq -y
-
-      # Step 8: Update Existing Task Definition with New Image
+      # Step 7: Update ECS Task Definition with Latest Image
       - name: Update ECS Task Definition with Latest Image
         run: |
-          TASK_DEFINITION_NAME="programingNode"  # Updated to match your task definition
-          TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION_NAME --query 'taskDefinition.taskDefinitionArn' --output text)
+          TASK_DEFINITION_NAME="programingNode"
 
-          UPDATED_TASK_DEF=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION_NAME --query 'taskDefinition' | jq --arg IMAGE "$DOCKERHUB_USERNAME/node-service:$IMAGE_TAG" '.containerDefinitions[0].image = $IMAGE')
+          # Get the latest task definition JSON
+          TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION_NAME --query 'taskDefinition' --output json)
 
+          # Modify the container image and remove unnecessary parameters
+          UPDATED_TASK_DEF=$(echo "$TASK_DEF_JSON" | jq --arg IMAGE "${{ secrets.DOCKERHUB_USERNAME }}/node-service:$IMAGE_TAG" '
+            .containerDefinitions[0].image = $IMAGE |
+            del(.taskDefinitionArn, .status, .revision, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)
+          ')
+
+          # Save the updated task definition to a file
           echo "$UPDATED_TASK_DEF" > updated-task-def.json
+
+          # Register the new task definition
           aws ecs register-task-definition --cli-input-json file://updated-task-def.json
 
-      # Step 9: Force ECS to Use the Updated Task Definition
+      # Step 8: Force ECS Deployment with Updated Task Definition
       - name: Force ECS Deployment with Updated Task
         run: |
-          TASK_REVISION=$(aws ecs describe-task-definition --task-definition programingNodeService --query 'taskDefinition.revision' --output text)
           aws ecs update-service \
             --cluster programingAutograderNode \
             --service programingNodeService \
-            --task-definition programingNodeService:$TASK_REVISION \
             --force-new-deployment
