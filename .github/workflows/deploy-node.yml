@@ -1,0 +1,53 @@
+name: Deploy Node.js Microservice to AWS ECS via Docker Hub
+
+on:
+  push:
+    branches:
+      - main # Runs when changes are pushed to main branch
+
+jobs:
+  deploy:
+    name: Build and Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout Repository
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+
+      # Step 3: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Step 4: Build & Push Docker Image to Docker Hub
+      - name: Build and Push Docker Image
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          IMAGE_TAG=$(date +%s)
+          docker build -t $DOCKERHUB_USERNAME/node-service:$IMAGE_TAG .
+          docker tag $DOCKERHUB_USERNAME/node-service:$IMAGE_TAG $DOCKERHUB_USERNAME/node-service:latest
+          docker push $DOCKERHUB_USERNAME/node-service:$IMAGE_TAG
+          docker push $DOCKERHUB_USERNAME/node-service:latest
+          echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
+
+      # Step 5: Deploy New Image to AWS ECS
+      # - name: Deploy to AWS ECS
+      #   env:
+      #     AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     AWS_REGION: ${{ secrets.AWS_REGION }}
+      #     ECS_CLUSTER_NAME: ${{ secrets.ECS_CLUSTER_NAME }}
+      #     ECS_SERVICE_NAME: ${{ secrets.ECS_SERVICE_NAME }}
+      #   run: |
+      #     aws ecs update-service \
+      #       --cluster $ECS_CLUSTER_NAME \
+      #       --service $ECS_SERVICE_NAME \
+      #       --force-new-deployment
