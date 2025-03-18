@@ -31,11 +31,9 @@ jobs:
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
         run: |
-          IMAGE_TAG=$(date +%s)
+          IMAGE_TAG="latest"  # Always push the latest image
           docker build -t $DOCKERHUB_USERNAME/node-service:$IMAGE_TAG .
-          docker tag $DOCKERHUB_USERNAME/node-service:$IMAGE_TAG $DOCKERHUB_USERNAME/node-service:latest
           docker push $DOCKERHUB_USERNAME/node-service:$IMAGE_TAG
-          docker push $DOCKERHUB_USERNAME/node-service:latest
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
       # Step 5: Configure AWS CLI
@@ -49,28 +47,8 @@ jobs:
       - name: Verify AWS CLI Credentials
         run: aws sts get-caller-identity
 
-      # Step 7: Update ECS Task Definition with Latest Image
-      - name: Update ECS Task Definition with Latest Image
-        run: |
-          TASK_DEFINITION_NAME="programingNode"
-
-          # Get the latest task definition JSON
-          TASK_DEF_JSON=$(aws ecs describe-task-definition --task-definition $TASK_DEFINITION_NAME --query 'taskDefinition' --output json)
-
-          # Modify the container image and remove unnecessary parameters
-          UPDATED_TASK_DEF=$(echo "$TASK_DEF_JSON" | jq --arg IMAGE "${{ secrets.DOCKERHUB_USERNAME }}/node-service:$IMAGE_TAG" '
-            .containerDefinitions[0].image = $IMAGE |
-            del(.taskDefinitionArn, .status, .revision, .requiresAttributes, .compatibilities, .registeredAt, .registeredBy)
-          ')
-
-          # Save the updated task definition to a file
-          echo "$UPDATED_TASK_DEF" > updated-task-def.json
-
-          # Register the new task definition
-          aws ecs register-task-definition --cli-input-json file://updated-task-def.json
-
-      # Step 8: Force ECS Deployment with Updated Task Definition
-      - name: Force ECS Deployment with Updated Task
+      # Step 7: Force ECS to Redeploy Using the Same Task Definition
+      - name: Force ECS Deployment with Same Task Definition
         run: |
           aws ecs update-service \
             --cluster programingAutograderNode \

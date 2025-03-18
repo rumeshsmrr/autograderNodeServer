@@ -20,7 +20,7 @@ setupApp(app); // Pass the app instance to configure routes and middleware
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`flask server running on${process.env.FLASK_API_URL}`);
+  console.log(`flask server API IS on${process.env.FLASK_API_URL}`);
 });
 
 //test api
