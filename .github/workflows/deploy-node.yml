@@ -43,16 +43,30 @@ jobs:
         run: |
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set region eu-north-1  # Stockholm Region (Change if needed)
+          aws configure set region eu-north-1  # Change this to your AWS region
 
       # Step 6: Verify AWS Credentials
       - name: Verify AWS CLI Credentials
         run: aws sts get-caller-identity
 
-      # Step 7: Update AWS ECS Service with New Image
-      - name: Force ECS Deployment with New Image
+      # Step 7: Install jq for JSON Processing
+      - name: Install jq
+        run: sudo apt-get install jq -y
+
+      # Step 8: Update Existing Task Definition with New Image
+      - name: Update ECS Task Definition with Latest Image
         run: |
+          TASK_DEFINITION_ARN=$(aws ecs describe-task-definition --task-definition programingNodeService --query 'taskDefinition.taskDefinitionArn' --output text)
+          UPDATED_TASK_DEF=$(aws ecs describe-task-definition --task-definition programingNodeService --query 'taskDefinition' | jq --arg IMAGE "$DOCKERHUB_USERNAME/node-service:$IMAGE_TAG" '.containerDefinitions[0].image = $IMAGE')
+          echo "$UPDATED_TASK_DEF" > updated-task-def.json
+          aws ecs register-task-definition --cli-input-json file://updated-task-def.json
+
+      # Step 9: Force ECS to Use the Updated Task Definition
+      - name: Force ECS Deployment with Updated Task
+        run: |
+          TASK_REVISION=$(aws ecs describe-task-definition --task-definition programingNodeService --query 'taskDefinition.revision' --output text)
           aws ecs update-service \
             --cluster programingAutograderNode \
             --service programingNodeService \
+            --task-definition programingNodeService:$TASK_REVISION \
             --force-new-deployment
