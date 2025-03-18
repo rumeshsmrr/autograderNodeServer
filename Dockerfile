@@ -1,20 +1,20 @@
-# Use an official Node.js runtime as a parent image
+# Use official Node.js runtime as a parent image
 FROM node:18
 
-# Set the working directory
+# Set working directory
 WORKDIR /app
 
-# Copy package.json and package-lock.json (if available)
+# Copy package.json and package-lock.json
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application
+# Copy app files
 COPY . .
 
-# Expose the port your app runs on
+# Expose the port (make sure this matches your ECS env variable)
 EXPOSE 5001
 
-# Command to run your application
-CMD ["npm", "start"]
+# Start the server
+CMD ["node", "server.js"]
