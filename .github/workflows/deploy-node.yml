@@ -45,10 +45,14 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws configure set region eu-north-1  # Stockholm Region (Change if needed)
 
-      # Step 6: Update AWS ECS Service with New Image
+      # Step 6: Verify AWS Credentials
+      - name: Verify AWS CLI Credentials
+        run: aws sts get-caller-identity
+
+      # Step 7: Update AWS ECS Service with New Image
       - name: Force ECS Deployment with New Image
         run: |
           aws ecs update-service \
-          --cluster programingAutograderNode \ 
-          --service programingNodeService \
-          --force-new-deployment
+            --cluster programingAutograderNode \
+            --service programingNodeService \
+            --force-new-deployment
