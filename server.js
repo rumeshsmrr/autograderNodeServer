@@ -22,3 +22,8 @@ app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
   console.log(`flask server running on${process.env.FLASK_API_URL}`);
 });
+
+//test api
+app.get("/", (req, res) => {
+  res.send("Hello World, This in autograder node server");
+});
