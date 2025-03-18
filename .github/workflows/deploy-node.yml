@@ -38,14 +38,17 @@ jobs:
           docker push $DOCKERHUB_USERNAME/node-service:latest
           echo "IMAGE_TAG=$IMAGE_TAG" >> $GITHUB_ENV
 
+      # Step 5: Configure AWS CLI
       - name: Configure AWS CLI
         run: |
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws configure set region eu-north-1  # Change this to your AWS region
+          aws configure set region eu-north-1  # Stockholm Region (Change if needed)
 
+      # Step 6: Update AWS ECS Service with New Image
       - name: Force ECS Deployment with New Image
         run: |
-          aws ecs update-service --cluster programingAutograderNode \
-          --service programingNodeService \
-          --force-new-deployment
+          aws ecs update-service \
+            --cluster programingAutograderNode \  # Hardcoded ECS Cluster Name
+            --service programingNodeService \        # Hardcoded ECS Service Name
+            --force-new-deployment
