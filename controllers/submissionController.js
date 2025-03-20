@@ -43,7 +43,7 @@ exports.evaluateAndSaveSubmission = async (req, res) => {
     console.log("📤 Sending request to Flask API:", requestData);
 
     const flaskResponse = await axios.post(flaskApiUrl, requestData, {
-      timeout: 5000, // Set 5s timeout
+      timeout: 30000, // Set 5s timeout
     });
 
     const evaluationResult = flaskResponse.data;
