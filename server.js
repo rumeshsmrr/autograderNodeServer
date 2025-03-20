@@ -6,8 +6,14 @@ const cors = require("cors");
 // Initialize the Express app
 const app = express();
 
-// Enable CORS
-app.use(cors());
+// Enable CORS with specific origin and headers
+app.use(
+  cors({
+    origin: "*", // Change "*" to specific frontend URL for security (e.g., "http://localhost:3000")
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 // Connect to MongoDB
 connectDB();
@@ -20,10 +26,10 @@ setupApp(app); // Pass the app instance to configure routes and middleware
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`flask server API IS on${process.env.FLASK_API_URL}`);
+  console.log(`Flask API URL: ${process.env.FLASK_API_URL}`);
 });
 
-//test api
+// Test API Route
 app.get("/", (req, res) => {
-  res.send("Hello World, This in autograder node server");
+  res.send("Hello World, This is the Autograder Node.js server.");
 });
