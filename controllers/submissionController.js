@@ -43,7 +43,7 @@ exports.evaluateAndSaveSubmission = async (req, res) => {
     console.log("📤 Sending request to Flask API:", requestData);
 
     const flaskResponse = await axios.post(flaskApiUrl, requestData, {
-      timeout: 30000, // Set 5s timeout
+      timeout: 100000, // Set 5s timeout
     });
 
     const evaluationResult = flaskResponse.data;
@@ -172,5 +172,67 @@ exports.getSingleSubmissionForStudent = async (req, res) => {
     res.status(200).json({ success: true, data: submission });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.manualUpdateSubmission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { grades } = req.body;
+
+    const submission = await Submission.findById(id);
+    if (!submission) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Submission not found" });
+    }
+
+    let total = 0;
+    for (const key in grades) {
+      total += grades[key];
+    }
+
+    submission.total_score = total;
+    submission.grades = grades;
+    submission.detailed_results = grades;
+
+    await submission.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Marks manually updated",
+      data: submission,
+    });
+  } catch (error) {
+    console.error("Manual update error:", error);
+    res.status(500).json({ success: false, error: error.message });
+  }
+};
+
+exports.deleteSubmissionById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Submission.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Submission not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Submission deleted successfully",
+      data: deleted,
+    });
+  } catch (error) {
+    console.error("Delete error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error deleting submission",
+      error: error.message,
+    });
   }
 };
