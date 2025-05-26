@@ -26,7 +26,7 @@ setupApp(app); // Pass the app instance to configure routes and middleware
 const PORT = process.env.PORT || 5001;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
-  console.log(`Flask API URL: ${process.env.FLASK_API_URL}`);
+  console.log(`Flask API URL is: ${process.env.FLASK_API_URL}`);
 });
 
 // Test API Route
