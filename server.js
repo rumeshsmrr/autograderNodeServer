@@ -7,13 +7,17 @@ const cors = require("cors");
 const app = express();
 
 // Enable CORS with specific origin and headers
+// Enable CORS with specific origin and headers
 app.use(
   cors({
-    origin: "*", // Change "*" to specific frontend URL for security (e.g., "http://localhost:3000")
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "*", // For dev, OK. For prod, use "https://yourfrontend.com"
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
+// ✅ Allow preflight OPTIONS requests to pass
+app.options("*", cors());
 
 // Connect to MongoDB
 connectDB();
