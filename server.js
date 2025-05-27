@@ -6,27 +6,20 @@ const cors = require("cors");
 // Initialize the Express app
 const app = express();
 
-// Enable CORS with specific origin and headers
-// Enable CORS with specific origin and headers
-const allowedOrigins = [
-  "http://localhost:3000", // for local dev
-  "https://autograder-client.vercel.app", // for production
-  "http://autograder-client.vercel.app",
-];
+// // Enable CORS with specific origin and headers
+// // Enable CORS with specific origin and headers
+// const allowedOrigins = [
+//   "http://localhost:3000", // for local dev
+//   "https://autograder-client.vercel.app", // for production
+//   "http://autograder-client.vercel.app",
+// ];
 
+// Enable CORS with specific origin and headers
 app.use(
   cors({
-    origin: function (origin, callback) {
-      // allow requests with no origin (like curl/postman) or whitelisted origins
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS not allowed from this origin"));
-      }
-    },
+    origin: ["https://api.rumeshsiriwardhana.site/", "http://localhost:3000"], // For dev, OK. For prod, use "https://yourfrontend.com"
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
 
