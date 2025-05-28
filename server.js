@@ -20,7 +20,7 @@ app.use(
     origin: ["http://localhost:3000", "https://autograder-client.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
+    // credentials: true,
   })
 );
 
