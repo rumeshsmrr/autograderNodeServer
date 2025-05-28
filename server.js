@@ -15,14 +15,7 @@ const app = express();
 // ];
 
 // Enable CORS with specific origin and headers
-app.use(
-  cors({
-    origin: ["http://localhost:3000", "https://autograder-client.vercel.app"],
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    // credentials: true,
-  })
-);
+app.use(cors());
 
 // ✅ Allow preflight OPTIONS requests to pass
 app.options("*", cors());
