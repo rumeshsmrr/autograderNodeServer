@@ -17,9 +17,10 @@ const app = express();
 // Enable CORS with specific origin and headers
 app.use(
   cors({
-    origin: ["https://api.rumeshsiriwardhana.site/", "http://localhost:3000"], // For dev, OK. For prod, use "https://yourfrontend.com"
+    origin: ["http://localhost:3000", "https://autograder-client.vercel.app"],
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
